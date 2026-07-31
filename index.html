@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Small-Bang Reforms &mdash; CLPG &middot; NFPRC Foundation</title>
+<meta name="description" content="An open repository of executable reforms for India, curated and tracked by the Centre for Law, Policy and Governance, NFPRC Foundation." />
+<link rel="stylesheet" href="/app.css" />
+</head>
+<body>
+<div id="sbr-root">
+  <div class="sbr-loading" id="sbr-loading">Loading Small-Bang Reforms&hellip;</div>
+</div>
+<script>
+// Tells the application that a server is available for content and sign-in.
+window.SBR_API = true;
+
+// All reads and writes go through the server. Only signed-in editors may write.
+window.storage = {
+  get: function (key) {
+    return fetch('/api/content', { headers: { 'Accept': 'application/json' } })
+      .then(function (r) { return r.ok ? r.json() : { value: null }; })
+      .then(function (j) {
+        return j && typeof j.value === 'string' ? { key: key, value: j.value, shared: true } : null;
+      })
+      .catch(function () { return null; });
+  },
+  set: function (key, value) {
+    return fetch('/api/content', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: value })
+    }).then(function (r) {
+      if (r.ok) return { key: key, value: value, shared: true };
+      return r.json().catch(function () { return {}; }).then(function (j) {
+        throw new Error(j.error || 'Saving failed.');
+      });
+    });
+  },
+  'delete': function (key) {
+    return Promise.resolve({ key: key, deleted: false, shared: true });
+  },
+  list: function () {
+    return Promise.resolve({ keys: [], shared: true });
+  }
+};
+</script>
+<script src="/data.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>
